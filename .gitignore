@@ -1,0 +1,27 @@
+# Python related files anywhere in the project
+**/__pycache__/
+**/*.py[cod]
+**/*.pyc
+**/*.pyo
+**/*.pyd
+
+# Environment files anywhere
+**/.env
+**/.venv
+
+# IDE files anywhere
+**/.idea/
+**/.vscode/
+**/*.swp
+**/*.swo
+
+# Logs anywhere
+**/*.log
+
+# Database files anywhere
+**/*.db
+**/*.sqlite3
+
+# Cache anywhere
+**/.cache/
+**/.pytest_cache/
