@@ -1,6 +1,7 @@
 from typing import List, Optional
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import Text, UniqueConstraint, MetaData
+from pydantic import EmailStr
 from datetime import datetime
 
 # Create metadata object with naming convention
@@ -20,46 +21,48 @@ class User(SQLModel, table=True):
 
     # main cols
     id: Optional[int] = Field(default=None, primary_key=True)
-    username: str = Field(unique=True, index=True)
-    email: str = Field(unique=True, index=True)
+    username: str = Field(unique=True, index=True, min_length=3, max_length=100)
+    email: EmailStr = Field(unique=True, index=True)
     password_hash: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = Field(default=None)
 
     # relationship
-    projects: List["Project"] = Relationship(back_populates='user')
+    stories: List["Story"] = Relationship(back_populates='user')
 
 
-class Project(SQLModel, table=True):
+class Story(SQLModel, table=True):
 
     # main cols
     id: Optional[int] = Field(default=None, primary_key=True)
     user_id: int = Field(foreign_key='user.id')
     name: str = Field(unique=True, index=True)
+    blurb: str = Field(sa_type=Text)
     created_at: datetime  = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = Field(default=None)
 
     # relationships
-    user: Optional["User"] = Relationship(back_populates='projects')
-    chapters: List["Chapter"] = Relationship(back_populates='project')
+    user: Optional["User"] = Relationship(back_populates='stories')
+    chapters: List["Chapter"] = Relationship(back_populates='story')
 
 
 class Chapter(SQLModel, table=True):
 
     # main cols
     id: Optional[int] = Field(default=None, primary_key=True)
-    project_id: int = Field(foreign_key='project.id')
+    story_id: int = Field(foreign_key='story.id')
     title: str = Field(index=True)
     content: str = Field(sa_type=Text)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: Optional[datetime] = Field(default=None)
+    is_published: bool = Field(default=False)
 
     # relationships
-    project: Optional["Project"] = Relationship(back_populates='chapters')
+    story: Optional["Story"] = Relationship(back_populates='chapters')
 
     # constraints
     __table_args__ = (
-        UniqueConstraint('project_id', 'title', name='unique_chapter_title_per_project'),
+        UniqueConstraint('story_id', 'title', name='unique_chapter_title_per_story'),
     )
 
     
