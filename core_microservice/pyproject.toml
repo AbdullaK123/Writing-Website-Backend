@@ -1,7 +1,7 @@
 [tool.poetry]
-name = "core_microservice"
+name = "core-microservice"
 version = "0.1.0"
-description = ""
+description = "The core microservice around which the app will be built"
 authors = ["AbdullaK123 <abdullamaseeh123@gmail.com>"]
 readme = "README.md"
 
@@ -10,11 +10,15 @@ python = "^3.10"
 fastapi = "^0.115.8"
 sqlmodel = "^0.0.22"
 pydantic = {extras = ["email"], version = "^2.10.6"}
-pydantic-settings = "^2.7.1"
+pydantic-settings = "^2.8.0"
 alembic = "^1.14.1"
 psycopg2-binary = "^2.9.10"
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+itsdangerous = "^2.2.0"
+python-jose = {extras = ["cryptography"], version = "^3.4.0"}
+python-multipart = "^0.0.20"
 redis = "^5.2.1"
-passlib = "^1.7.4"
+uvicorn = "^0.34.0"
 
 
 [build-system]

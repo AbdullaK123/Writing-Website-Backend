@@ -1,6 +1,6 @@
 from sqlmodel import create_engine, Session
 from sqlalchemy.pool import QueuePool
-from settings import app_config
+from src.settings import app_config
 
 # create the engine with connection pooling
 engine = create_engine(

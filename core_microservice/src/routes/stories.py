@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request, Depends, HTTPException, Query
 from sqlmodel import Session
 from src.database import get_db
-from src.services.auth import auth_service
+from src.services.auth import get_current_active_user
 from src.services.stories import story_service
 from src.models import User
 from src.schema import (
@@ -51,10 +51,7 @@ def create_story(
     request: Request,
     story_data: StoryInfo,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        lambda req=Request, db=Depends(get_db):
-        auth_service.require_authenticated(req, db)
-    )
+    current_user: User = Depends(get_current_active_user)
 ) -> StoryResponse:
     story_create_data = StoryCreate(user_id=current_user.id, info=story_data)
     return story_service.create_story(story_create_data, db)
@@ -66,10 +63,7 @@ def delete_story(
     id: int,
     request: Request,
     db: Session = Depends(get_db),
-    current_user: User = Depends(
-        lambda req=Request, db=Depends(get_db):
-        auth_service.require_authenticated(req, db)
-    )
+    current_user: User = Depends(get_current_active_user)
 ) -> dict[str, str]:
     story = story_service.get_story_by_id(id, db)
 

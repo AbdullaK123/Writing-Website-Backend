@@ -1,9 +1,11 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
-from src.services.redis import redis_service
+from fastapi.responses import PlainTextResponse
+from starlette.exceptions import HTTPException as GlobalStarletteHTTPException
+from fastapi.exceptions import RequestValidationError
 from src.settings import app_config
-from src.routes import users, stories
+from src.routes import users, stories, chapters
 
 
 app = FastAPI(
@@ -20,15 +22,5 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=app_config.SECRET_KEY,
-    session_cookie="session",
-    max_age=app_config.SESSION_LIFETIME,
-    same_site="lax",
-    https_only=True,
-    backend=redis_service
-)
-
-app.include_router(users.router)
 app.include_router(stories.router)
+app.include_router(chapters.router)

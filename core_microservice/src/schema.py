@@ -39,10 +39,10 @@ class ChapterCreate(SQLModel):
 # schema to update a chapter
 class ChapterUpdate(SQLModel):
     id: int
-    title: str
-    is_published: bool 
+    title: str | None = None
+    is_published: bool | None = None
     updated_at: datetime = datetime.utcnow()
-    content: str = Field(sa_column=Column(Text))
+    content: str | None = Field(default=None, sa_column=Column(Text))
 
 # schema for a chapter response
 class ChapterResponse(SQLModel):
@@ -51,6 +51,15 @@ class ChapterResponse(SQLModel):
     is_published: bool 
     title: str
     content: str = Field(sa_column=Column(Text))
+
+
+# paginated chapter response
+class PaginatedChapterResponse(SQLModel):
+    chapters: List[ChapterResponse]
+    total_chapters: int
+    total_pages: int
+    page: int
+    page_size: int
 
 # schema for shallow story response
 class StoryResponse(SQLModel):
@@ -69,3 +78,4 @@ class UserResponse(SQLModel):
     id: int
     username: str
     email: str
+    token_dict: dict | None = None

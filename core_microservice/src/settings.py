@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     REDIS_PORT: int
     APP_PORT: int
     ALLOWED_DOMAIN:str
-    SESSION_LIFETIME:int = 24*60*60
+    TOKEN_EXPIRE_TIME: str
+    AUTH_ALGO: str
 
     class Config:
         env_file = '.env'
