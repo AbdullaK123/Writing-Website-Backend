@@ -43,4 +43,13 @@ def refresh_token(
     refresh_token: str = Body(...)
 ) -> TokenResponse:
     return auth_service.verify_refresh_token(refresh_token)
+
+
+@router.post('/logout')
+def logout(
+    request: Request,
+    refresh_token: str = Body(...),
+    current_user: User = Depends(get_current_active_user)
+) -> dict:
+    return auth_service.logout(current_user, refresh_token)
     

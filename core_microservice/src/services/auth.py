@@ -43,7 +43,7 @@ class AuthService:
         to_encode = data.copy()
         expire = datetime.utcnow() + timedelta(minutes=int(app_config.TOKEN_EXPIRE_TIME))
         to_encode.update({
-            'exp': expire, type: "access"
+            'exp': expire, 'type': "access"
         })
         return jwt.encode(to_encode, app_config.SECRET_KEY, app_config.AUTH_ALGO)
     
@@ -54,7 +54,7 @@ class AuthService:
         to_encode=data.copy()
         expire = datetime.utcnow() + timedelta(days=int(app_config.REFRESH_TOKEN_EXPIRE_TIME))
         to_encode.update({
-            'exp': expire, type: "refresh"
+            'exp': expire, 'type': "refresh"
         })
         return jwt.encode(to_encode, app_config.SECRET_KEY, app_config.AUTH_ALGO)
 
@@ -174,6 +174,25 @@ class AuthService:
                 status_code=500,
                 detail=f"A database error occured: {e}"
             )
+        
+    def logout(
+        self,
+        user: User,
+        refresh_token: str
+    ) -> dict:
+        try:
+            payload = jwt.decode(refresh_token, app_config.SECRET_KEY, algorithms=[app_config.AUTH_ALGO])
+
+            username = payload.get('sub')
+
+            token_key = f"refresh_toke:{username}:{refresh_token}"
+
+            self.redis.delete(token_key)
+
+            return {"message": "Successfully logged out"}
+
+        except JWTError:
+            return {"message": "Successfully logged out"}
     
     @staticmethod
     def get_user(
