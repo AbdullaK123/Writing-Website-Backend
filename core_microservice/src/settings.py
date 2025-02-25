@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     APP_PORT: int
     ALLOWED_DOMAIN:str
     TOKEN_EXPIRE_TIME: str
+    REFRESH_TOKEN_EXPIRE_TIME: str
     AUTH_ALGO: str
 
     class Config:

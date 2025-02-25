@@ -7,11 +7,12 @@ from typing import Optional, Union
 from src.settings import app_config
 from src.database import get_db
 from sqlmodel import Session, select
+from redis import Redis
 from datetime import datetime, timedelta
 from src.schema import (
     UserCreate,
     UserLogin,
-    UserNameTag,
+    TokenResponse,
     UserResponse
 )
 
@@ -24,12 +25,38 @@ class AuthService:
             schemes=['bcrypt'],
             deprecated='auto'
         )
+        self.redis = Redis(
+            host=app_config.REDIS_HOST,
+            port=app_config.REDIS_PORT
+        )
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
     
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         return self.pwd_context.verify(plain_password, hashed_password)
+    
+    def create_access_token(
+        self,
+        data: dict
+    ) -> dict:
+        to_encode = data.copy()
+        expire = datetime.utcnow() + timedelta(minutes=int(app_config.TOKEN_EXPIRE_TIME))
+        to_encode.update({
+            'exp': expire, type: "access"
+        })
+        return jwt.encode(to_encode, app_config.SECRET_KEY, app_config.AUTH_ALGO)
+    
+    def create_refresh_token(
+        self,
+        data: dict
+    ) -> dict:
+        to_encode=data.copy()
+        expire = datetime.utcnow() + timedelta(days=int(app_config.REFRESH_TOKEN_EXPIRE_TIME))
+        to_encode.update({
+            'exp': expire, type: "refresh"
+        })
+        return jwt.encode(to_encode, app_config.SECRET_KEY, app_config.AUTH_ALGO)
 
     def create_user(
         self,
@@ -72,6 +99,47 @@ class AuthService:
                 detail=f"A database error occurred: {e}"
             )
         
+
+    def verify_refresh_token(
+        self,
+        refresh_token: str
+    ) -> TokenResponse:
+        try:
+
+            payload = jwt.decode(refresh_token, app_config.SECRET_KEY, algorithms=[app_config.AUTH_ALGO])
+
+            if payload.get('type') != "refresh":
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid token type"
+                )
+            
+            username = payload.get('sub')
+
+            if not username:
+                raise HTTPException(
+                    status_code=401,
+                    detail="Invalid token"
+                )
+            
+            token_key = f"refresh_token:{username}:{refresh_token}"
+
+            if not self.redis.exists(token_key):
+                raise HTTPException(
+                    status_code=401,
+                    detail="Token has been revoked"
+                )
+            
+            access_token = self.create_access_token(data={'sub': username})
+
+            return TokenResponse(access_token=access_token, refresh_token=refresh_token)
+
+        except JWTError:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid token refresh"
+            )
+        
     def login(
         self,
         request: Request,
@@ -81,13 +149,22 @@ class AuthService:
         try:
             user = self.authenticate_user(login_data.email, login_data.password, db)
 
-            token_dict = self.get_access_token(data={'sub': user.username}, request=request)
+            access_token = self.create_access_token(data={'sub': user.username})
+            refresh_token = self.create_refresh_token(data={'sub': user.username})
+
+            self.redis.setex(
+                f"refresh_token:{user.username}:{refresh_token}",
+                60*60*24*7,
+                1
+            )
+
+            token_response=TokenResponse(access_token=access_token, refresh_token=refresh_token)
 
             return UserResponse(
                     id=user.id,
                     username=user.username,
                     email=user.email,
-                    token_dict=token_dict
+                    token_data=token_response
                 )
         
         except HTTPException:
@@ -120,33 +197,6 @@ class AuthService:
             )
         return user
     
-    def get_access_token(
-        self,
-        data: dict,
-        request: Request
-    ) -> str:
-        
-        # create a copy of the data to encode
-        to_encode = data.copy()
-
-        # set the expire time
-        expire = datetime.utcnow() + timedelta(minutes=int(app_config.TOKEN_EXPIRE_TIME))
-
-        # update the data with the expire time
-        to_encode.update({
-            'exp': expire
-        })
-
-        # encode it with the secret key and choice of algo
-        encoded_jwt = jwt.encode(
-            to_encode,
-            app_config.SECRET_KEY,
-            algorithm=app_config.AUTH_ALGO
-        )
-
-        return encoded_jwt
-    
-
     @staticmethod
     def get_current_user(
         db: Session,

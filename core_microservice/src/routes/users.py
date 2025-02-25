@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Depends, HTTPException
+from fastapi import APIRouter, Request, Depends, Body
 from sqlmodel import Session
 from src.models import User
 from src.services.auth import auth_service, get_current_active_user
@@ -6,7 +6,8 @@ from src.database import get_db
 from src.schema import (
     UserCreate,
     UserLogin,
-    UserResponse
+    UserResponse,
+    TokenResponse
 )
 
 
@@ -35,4 +36,11 @@ def login(
 ) -> UserResponse:
     return auth_service.login(request, login_data, db)
 
+
+@router.post('/token-refresh', response_model=TokenResponse)
+def refresh_token(
+    request: Request,
+    refresh_token: str = Body(...)
+) -> TokenResponse:
+    return auth_service.verify_refresh_token(refresh_token)
     

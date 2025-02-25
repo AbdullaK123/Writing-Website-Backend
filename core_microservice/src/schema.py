@@ -19,6 +19,11 @@ class UserNameTag(SQLModel):
     id: int
     username: str
 
+class TokenResponse(SQLModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
 
 # story info schema
 class StoryInfo(SQLModel):
@@ -78,4 +83,4 @@ class UserResponse(SQLModel):
     id: int
     username: str
     email: str
-    token_dict: dict | None = None
+    token_data: TokenResponse | None = None
