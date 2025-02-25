@@ -29,6 +29,10 @@ class AuthService:
             host=app_config.REDIS_HOST,
             port=app_config.REDIS_PORT
         )
+        try:
+            self.redis.ping()
+        except Exception as e:
+            raise Exception(f"Failed to connect to redis: {e}")
 
     def hash_password(self, password: str) -> str:
         return self.pwd_context.hash(password)
