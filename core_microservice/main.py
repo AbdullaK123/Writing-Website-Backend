@@ -1,9 +1,5 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.sessions import SessionMiddleware
-from fastapi.responses import PlainTextResponse
-from starlette.exceptions import HTTPException as GlobalStarletteHTTPException
-from fastapi.exceptions import RequestValidationError
 from src.settings import app_config
 from src.routes import users, stories, chapters
 
@@ -24,3 +20,4 @@ app.add_middleware(
 
 app.include_router(stories.router)
 app.include_router(chapters.router)
+app.include_router(users.router)

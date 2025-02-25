@@ -22,6 +22,7 @@ class User(SQLModel, table=True):
     # main cols
     id: Optional[int] = Field(default=None, primary_key=True)
     username: str = Field(unique=True, index=True, min_length=3, max_length=100)
+    bio: Optional[str] = Field(sa_type=Text)
     email: EmailStr = Field(unique=True, index=True)
     password_hash: str
     created_at: datetime = Field(default_factory=datetime.utcnow)

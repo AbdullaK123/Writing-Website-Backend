@@ -9,6 +9,7 @@ class UserCreate(SQLModel):
     username: str = Field(min_length=5, max_length=100)
     email: EmailStr
     password: str = Field(min_length=7)
+    bio: str | None = Field(default=None, sa_column=Column(Text))
 
 
 class UserLogin(SQLModel):

@@ -81,7 +81,8 @@ class AuthService:
             user_to_create = User(
                 username=user_data.username,
                 email=user_data.email,
-                password_hash=self.hash_password(user_data.password)
+                password_hash=self.hash_password(user_data.password),
+                bio=user_data.bio
             )
 
             db.add(user_to_create)
@@ -189,7 +190,7 @@ class AuthService:
 
             username = payload.get('sub')
 
-            token_key = f"refresh_toke:{username}:{refresh_token}"
+            token_key = f"refresh_token:{username}:{refresh_token}"
 
             self.redis.delete(token_key)
 
