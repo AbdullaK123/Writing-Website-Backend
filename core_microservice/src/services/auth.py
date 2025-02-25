@@ -1,6 +1,7 @@
 from passlib.context import CryptContext
 from fastapi.security import OAuth2PasswordBearer
 from fastapi import HTTPException, Request, Depends, status
+import time
 from jose import jwt, JWTError
 from src.models import User
 from typing import Optional, Union
@@ -89,12 +90,7 @@ class AuthService:
             db.commit()
             db.refresh(user_to_create)
 
-            login_data = UserLogin(
-                email=user_data.email,
-                password=user_data.password
-            )
-
-            return self.login(request, login_data, db)
+            return user_to_create
 
         except HTTPException:
             raise
